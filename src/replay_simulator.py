@@ -10,15 +10,23 @@ next_line = None
 
 def main():
     bug = make_replay.replay()
-    bug.read_from_file('13.82.txt')
-    track = '../tracks/track1/'
-    window_width, window_heigth, track_path = 1920, 1080, '../tracks/track1/'
-    start_x, start_y, heading = utilities.read_position(track)[0], utilities.read_position(track)[1], utilities.read_position(track)[2]
-    track_batch, gates_batch, finish_line_batch = pyglet.graphics.Batch(), pyglet.graphics.Batch(), pyglet.graphics.Batch()
+    bug.read_from_file("13.82.txt")
+    track = "../tracks/track1/"
+    window_width, window_heigth, track_path = 1920, 1080, "../tracks/track1/"
+    start_x, start_y, heading = (
+        utilities.read_position(track)[0],
+        utilities.read_position(track)[1],
+        utilities.read_position(track)[2],
+    )
+    track_batch, gates_batch, finish_line_batch = (
+        pyglet.graphics.Batch(),
+        pyglet.graphics.Batch(),
+        pyglet.graphics.Batch(),
+    )
     track_segments, track_lines = utilities.load_track_segments(track), utilities.load_track_lines(track, track_batch)
     gates_segments, gates_lines = utilities.load_gates_segments(track), utilities.load_gates_lines(track, gates_batch)
     game_window = pyglet.window.Window(window_width, window_heigth)
-    car = car_class.car(start_x, start_y, heading, track_segments, gates_segments, True, None)
+    car = car_class.Car(start_x, start_y, heading, track_segments, gates_segments, True, None)
     car_batch = pyglet.graphics.Batch()
     edges = car.get_edges()
     car_lines = []
@@ -59,5 +67,5 @@ def main():
     pyglet.app.run()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

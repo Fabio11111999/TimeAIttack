@@ -5,16 +5,17 @@ import utilities
 import car_stats
 
 
-class car:
+class Car:
     def __init__(self, x, y, heading, borders, gates, driven, replay):
         self.x = x
         self.y = y
         self.start_x = x
         self.start_y = y
-        self.car_image = pyglet.image.load('../images/car.png')
+        self.car_image = pyglet.image.load("../images/car.png")
+        self.car_image.anchor_x = int(self.car_image.width / 2)
+        self.car_image.anchor_y = int(self.car_image.height / 2)
         self.car_sprite = pyglet.sprite.Sprite(self.car_image, x=self.x, y=self.y)
-        self.car_sprite.image.anchor_x = self.car_sprite.width / 2
-        self.car_sprite.image.anchor_y = self.car_sprite.height / 2
+
         self.width = self.car_sprite.width
         self.height = self.car_sprite.height
         self.car_heading = heading
@@ -26,13 +27,14 @@ class car:
         self.alive = True
         self.borders = borders
         self.gates = gates
-        self.gates.append(gates[0])
+        if len(self.gates):
+            self.gates.append(gates[0])
         self.next_gate = 0
         self.completed = False
         self.current_time = 0.0
         self.last_timer = 0
 
-        # Replay 
+        # Replay
         self.driven = driven
         self.replay = replay
         self.i_frame = 0
@@ -83,11 +85,13 @@ class car:
         if self.going_reverse > 0:
             vec = new_heading * utilities.norm(self.velocity)
             if vec[0] * vec[1] != 0 and self.velocity[0] * self.velocity[1] != 0 and vec[0] != self.velocity[0]:
-                # Linear Interpolate 
+                # Linear Interpolate
                 x = min(self.velocity[0], vec[0])
                 y = max(self.velocity[0], vec[0])
                 new_x = x + current_traction * (y - x)
-                new_y = self.velocity[1] + ((vec[1] - self.velocity[1]) / (vec[0] - self.velocity[0])) * (new_x - self.velocity[0])
+                new_y = self.velocity[1] + ((vec[1] - self.velocity[1]) / (vec[0] - self.velocity[0])) * (
+                    new_x - self.velocity[0]
+                )
                 self.velocity = np.array([new_x, new_y])
             else:
                 self.velocity = new_heading * utilities.norm(self.velocity)
@@ -121,10 +125,10 @@ class car:
                     self.completed = True
                     return [0, round(self.current_time, 2)]
             if self.cross_border():
-                self.restart()
-                return [0, -1]
-                # self.alive = False
-                # return [0, round(self.current_time, 2)]
+                # self.restart()
+                # return [0, -1]
+                self.alive = False
+                return [0, round(self.current_time, 2)]
             self.last_timer = round(self.current_time, 2)
             speed = utilities.norm(self.velocity)
             if self.going_reverse < 0:
@@ -134,7 +138,9 @@ class car:
         else:
             if self.alive is False or self.completed:
                 return [None, round(self.replay.log[-1].dt, 2)]
-            while self.i_frame < len(self.replay.log) - 1 and abs(self.current_time - self.replay.log[self.i_frame].dt) >= abs(self.current_time - self.replay.log[self.i_frame + 1].dt):
+            while self.i_frame < len(self.replay.log) - 1 and abs(
+                self.current_time - self.replay.log[self.i_frame].dt
+            ) >= abs(self.current_time - self.replay.log[self.i_frame + 1].dt):
                 self.i_frame += 1
             self.x = self.replay.log[self.i_frame].x
             self.y = self.replay.log[self.i_frame].y
@@ -180,65 +186,94 @@ class car:
         return False
 
     def restart(self):
-        self.__init__(self.start_x, self.start_y, self.start_heading, self.borders, self.gates, self.driven,
-                      self.replay)
+        self.__init__(
+            self.start_x, self.start_y, self.start_heading, self.borders, self.gates, self.driven, self.replay
+        )
         self.next_gate = 0
 
     # Calculates the points of intersection for each direction
     def calculate_distances(self):
-        front_segment = utilities.segment(self.x, self.y, self.x + 10000 * utilities.cos(self.car_heading), self.y + 10000 * utilities.sin(self.car_heading))
+        front_segment = utilities.segment(
+            self.x,
+            self.y,
+            self.x + 10000 * utilities.cos(self.car_heading),
+            self.y + 10000 * utilities.sin(self.car_heading),
+        )
         front_point = [10000, 10000]
         for border in self.borders:
             front_intersection = utilities.segment_intersection(border, front_segment)
-            if front_intersection is not False and \
-                    utilities.dist(self.x, self.y, front_intersection[0], front_intersection[1]) < utilities.dist(self.x, self.y, front_point[0], front_point[1]):
+            if front_intersection is not False and utilities.dist(
+                self.x, self.y, front_intersection[0], front_intersection[1]
+            ) < utilities.dist(self.x, self.y, front_point[0], front_point[1]):
                 front_point = front_intersection
         self.front_dist.x2 = front_point[0]
         self.front_dist.y2 = front_point[1]
         self.distances[0] = utilities.dist(self.x, self.y, front_point[0], front_point[1])
 
-        left_segment = utilities.segment(self.x, self.y, self.x + 10000 * utilities.cos(self.car_heading + 90), self.y + 10000 * utilities.sin(self.car_heading + 90))
+        left_segment = utilities.segment(
+            self.x,
+            self.y,
+            self.x + 10000 * utilities.cos(self.car_heading + 90),
+            self.y + 10000 * utilities.sin(self.car_heading + 90),
+        )
         left_point = [10000, 10000]
         for border in self.borders:
             left_intersection = utilities.segment_intersection(border, left_segment)
-            if left_intersection is not False and \
-                    utilities.dist(self.x, self.y, left_intersection[0], left_intersection[1]) < utilities.dist(self.x, self.y, left_point[0], left_point[1]):
+            if left_intersection is not False and utilities.dist(
+                self.x, self.y, left_intersection[0], left_intersection[1]
+            ) < utilities.dist(self.x, self.y, left_point[0], left_point[1]):
                 left_point = left_intersection
         self.left_dist.x2 = left_point[0]
         self.left_dist.y2 = left_point[1]
         self.distances[1] = utilities.dist(self.x, self.y, left_point[0], left_point[1])
 
-        right_segment = utilities.segment(self.x, self.y, self.x + 10000 * utilities.cos(self.car_heading - 90), self.y + 10000 * utilities.sin(self.car_heading - 90))
+        right_segment = utilities.segment(
+            self.x,
+            self.y,
+            self.x + 10000 * utilities.cos(self.car_heading - 90),
+            self.y + 10000 * utilities.sin(self.car_heading - 90),
+        )
         right_point = [10000, 10000]
         for border in self.borders:
             right_intersection = utilities.segment_intersection(border, right_segment)
-            if right_intersection is not False and \
-                    utilities.dist(self.x, self.y, right_intersection[0], right_intersection[1]) < utilities.dist(self.x, self.y, right_point[0], right_point[1]):
+            if right_intersection is not False and utilities.dist(
+                self.x, self.y, right_intersection[0], right_intersection[1]
+            ) < utilities.dist(self.x, self.y, right_point[0], right_point[1]):
                 right_point = right_intersection
         self.right_dist.x2 = right_point[0]
         self.right_dist.y2 = right_point[1]
         self.distances[2] = utilities.dist(self.x, self.y, right_point[0], right_point[1])
 
-        front_left_segment = utilities.segment(self.x, self.y, self.x + 10000 * utilities.cos(self.car_heading + 45), self.y + 10000 * utilities.sin(self.car_heading + 45))
+        front_left_segment = utilities.segment(
+            self.x,
+            self.y,
+            self.x + 10000 * utilities.cos(self.car_heading + 45),
+            self.y + 10000 * utilities.sin(self.car_heading + 45),
+        )
         front_left_point = [10000, 10000]
         for border in self.borders:
             front_left_intersection = utilities.segment_intersection(border, front_left_segment)
-            if front_left_intersection is not False and \
-                    utilities.dist(self.x, self.y, front_left_intersection[0], front_left_intersection[1]) < utilities.dist(self.x, self.y, front_left_point[0], front_left_point[1]):
+            if front_left_intersection is not False and utilities.dist(
+                self.x, self.y, front_left_intersection[0], front_left_intersection[1]
+            ) < utilities.dist(self.x, self.y, front_left_point[0], front_left_point[1]):
                 front_left_point = front_left_intersection
         self.front_left_dist.x2 = front_left_point[0]
         self.front_left_dist.y2 = front_left_point[1]
         self.distances[3] = utilities.dist(self.x, self.y, front_left_point[0], front_left_point[1])
 
-        front_right_segment = utilities.segment(self.x, self.y, self.x + 10000 * utilities.cos(self.car_heading - 45), self.y + 10000 * utilities.sin(self.car_heading - 45))
+        front_right_segment = utilities.segment(
+            self.x,
+            self.y,
+            self.x + 10000 * utilities.cos(self.car_heading - 45),
+            self.y + 10000 * utilities.sin(self.car_heading - 45),
+        )
         front_right_point = [10000, 10000]
         for border in self.borders:
             front_right_intersection = utilities.segment_intersection(border, front_right_segment)
-            if front_right_intersection is not False and \
-                    utilities.dist(self.x, self.y, front_right_intersection[0], front_right_intersection[1]) < utilities.dist(self.x, self.y, front_right_point[0], front_right_point[1]):
+            if front_right_intersection is not False and utilities.dist(
+                self.x, self.y, front_right_intersection[0], front_right_intersection[1]
+            ) < utilities.dist(self.x, self.y, front_right_point[0], front_right_point[1]):
                 front_right_point = front_right_intersection
         self.front_right_dist.x2 = front_right_point[0]
         self.front_right_dist.y2 = front_right_point[1]
         self.distances[4] = utilities.dist(self.x, self.y, front_right_point[0], front_right_point[1])
-
-        print(self.distances)

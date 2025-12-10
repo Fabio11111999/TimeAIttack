@@ -11,8 +11,8 @@ from tensorflow.keras.optimizers import Adam
 enviroment = gym.make("Taxi-v3").env
 enviroment.render()
 
-print('Number of states: {}'.format(enviroment.observation_space.n))
-print('Number of acrions: {}'.format(enviroment.action_space.n))
+print("Number of states: {}".format(enviroment.observation_space.n))
+print("Number of acrions: {}".format(enviroment.action_space.n))
 
 alpha = 0.1
 gamma = 0.6
@@ -44,9 +44,9 @@ for episode in range(0, num_of_episodes):
 
     if (episode + 1) % 100 == 0:
         clear_output(wait=True)
-        print('Episode: {}'.format(episode + 1))
+        print("Episode: {}".format(episode + 1))
         enviroment.render()
 
-print('**************')
-print('Training is done!\n')
-print('**************')
+print("**************")
+print("Training is done!\n")
+print("**************")

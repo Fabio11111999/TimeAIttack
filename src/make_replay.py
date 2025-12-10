@@ -15,8 +15,23 @@ class replay:
             self.keys = pressed_keys
 
         def __str__(self):
-            return str(self.frame) + '\t' + str(self.dt) + '\t' + str(self.x) + '\t' + str(self.y) + '\t' + str(self.heading) + '\t' + str(self.alive) + '\t' + str(self.completed) + '\t' + str(
-                self.keys)
+            return (
+                str(self.frame)
+                + "\t"
+                + str(self.dt)
+                + "\t"
+                + str(self.x)
+                + "\t"
+                + str(self.y)
+                + "\t"
+                + str(self.heading)
+                + "\t"
+                + str(self.alive)
+                + "\t"
+                + str(self.completed)
+                + "\t"
+                + str(self.keys)
+            )
 
     def __init__(self):
         self.log = []
@@ -28,13 +43,24 @@ class replay:
         self.log = []
 
     def print_to_file(self, name):
-        ofile = open('../replays/' + name, 'w')
+        ofile = open("../replays/" + name, "w")
         for f in self.log:
-            ofile.write(f.__str__() + '\n')
+            ofile.write(f.__str__() + "\n")
 
     def read_from_file(self, name):
-        ifile = open('../replays/' + name, 'r')
+        ifile = open("../replays/" + name, "r")
         self.reset()
         for row in ifile:
-            row = row[0: -1].split('\t')
-            self.add(self.frame(int(row[0]), float(row[1]), float(row[2]), float(row[3]), float(row[4]), row[5] == 'True', row[6] == 'True', ast.literal_eval(row[7])))
+            row = row[0:-1].split("\t")
+            self.add(
+                self.frame(
+                    int(row[0]),
+                    float(row[1]),
+                    float(row[2]),
+                    float(row[3]),
+                    float(row[4]),
+                    row[5] == "True",
+                    row[6] == "True",
+                    ast.literal_eval(row[7]),
+                )
+            )
