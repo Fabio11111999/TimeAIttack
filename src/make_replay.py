@@ -2,8 +2,8 @@ import json
 import ast
 
 
-class replay:
-    class frame:
+class Replay:
+    class Frame:
         def __init__(self, frame_number, delta_time, xp, yp, car_heading, alive, completed, pressed_keys):
             self.frame = frame_number
             self.dt = delta_time
@@ -53,7 +53,7 @@ class replay:
         for row in ifile:
             row = row[0:-1].split("\t")
             self.add(
-                self.frame(
+                self.Frame(
                     int(row[0]),
                     float(row[1]),
                     float(row[2]),

@@ -9,7 +9,7 @@ next_line = None
 
 
 def main():
-    bug = make_replay.replay()
+    bug = make_replay.Replay()
     bug.read_from_file("13.82.txt")
     track = "../tracks/track1/"
     window_width, window_heigth, track_path = 1920, 1080, "../tracks/track1/"

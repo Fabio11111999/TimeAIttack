@@ -131,7 +131,7 @@ def draw_lines(
 
 
 def main() -> None:
-    window = pyglet.window.Window(graphics_constants.resolution_width, graphics_constants.resolution_height)
+    window = pyglet.window.Window(graphics_constants.resolution_width, graphics_constants.resolution_height)  # type: ignore
 
     drawing_step = DrawingState.DRAW_OUTER
 
