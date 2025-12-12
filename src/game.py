@@ -1,22 +1,30 @@
+from typing import List, Optional, Tuple
+
 import pyglet
 from pyglet import shapes
 from pyglet.window import key
-from typing import Optional
 
 import car_class
-import utilities
-import make_replay
 import graphics_constants
+import make_replay
+import utilities
 
 
 class Game:
     def __init__(self, window_width: int, window_height: int, track: str):
-        self.window_width = window_width
-        self.window_height = window_height
-        self.track_path = track
+        """
+        Initialize a new Game session.
 
-        pos = utilities.read_position(track)
-        self.start_x, self.start_y, self.heading = pos[0], pos[1], pos[2]
+        :param window_width: Width of the game window
+        :param window_height: Height of the game window
+        :param track: Path to the track folder
+        """
+        self.window_width: int = window_width
+        self.window_height: int = window_height
+        self.track_path: str = track
+
+        pos: Tuple[float, float, float] = utilities.read_position(track)
+        self.start_x, self.start_y, self.heading = pos
 
         self.track_segments = utilities.load_track_segments(track)
         self.gates_segments = utilities.load_gates_segments(track)
@@ -26,6 +34,12 @@ class Game:
         self.gates_batch: Optional[pyglet.graphics.Batch] = None
         self.finish_line_batch: Optional[pyglet.graphics.Batch] = None
         self.distances_batch: Optional[pyglet.graphics.Batch] = None
+
+        # Border and gates lines
+
+        self.track_lines: Optional[List[shapes.Line]] = None
+        self.gates_lines: Optional[List[shapes.Line]] = None
+        self.finish_line_line: Optional[shapes.Line] = None
 
         # Distance lines
         self.front_distance_line: Optional[shapes.Line] = None
@@ -38,7 +52,12 @@ class Game:
         self.finished: bool = False
 
     def new_game(self) -> make_replay.Replay:
-        game_window = pyglet.window.Window(self.window_width, self.window_height, resizable=True)
+        """
+        Start a new game session and return the replay object.
+
+        :return: Replay containing all frames of this session
+        """
+        game_window = pyglet.window.Window(self.window_width, self.window_height, resizable=True)  # type: ignore
 
         # Create batches
         self.track_batch = pyglet.graphics.Batch()
@@ -52,9 +71,15 @@ class Game:
         self.finish_line_line = utilities.load_finish_line_line(self.track_path, self.finish_line_batch)
 
         # Create replay and car
-        replay = make_replay.Replay()
+        replay = make_replay.Replay(self.track_path)
         car = car_class.Car(
-            self.start_x, self.start_y, self.heading, self.track_segments, self.gates_segments, True, replay
+            self.start_x,
+            self.start_y,
+            self.heading,
+            self.track_segments,
+            self.gates_segments,
+            driven=True,
+            replay=replay,
         )
 
         # Key handler
@@ -62,9 +87,22 @@ class Game:
         game_window.push_handlers(keys)
 
         # Labels
-        speed_label = pyglet.text.Label("Speed: 0", color=graphics_constants.white_color, font_size=24, x=1700, y=1040)
+        speed_label = pyglet.text.Label(
+            "Speed: 0",
+            color=graphics_constants.white_color,
+            font_name=graphics_constants.game_speed_label_font_name,
+            font_size=graphics_constants.game_speed_label_font_size,
+            x=graphics_constants.game_speed_label_x,
+            y=graphics_constants.game_speed_label_y,
+        )
+
         timer_label = pyglet.text.Label(
-            "Time: 0.0s", color=graphics_constants.white_color, font_size=24, x=1400, y=1040
+            "Time: 0.0s",
+            color=graphics_constants.white_color,
+            font_name=graphics_constants.game_timer_label_font_name,
+            font_size=graphics_constants.game_timer_label_font_size,
+            x=graphics_constants.game_timer_label_x,
+            y=graphics_constants.game_timer_label_y,
         )
 
         # Distance lines
@@ -74,40 +112,53 @@ class Game:
         self.finished = False
 
         @game_window.event
-        def on_draw():
+        def on_draw() -> None:
+            """
+            Render all graphics on screen.
+
+            :return: None
+            """
             game_window.clear()
-            self.track_batch.draw()
-            self.gates_batch.draw()
-            self.finish_line_batch.draw()
-            self.distances_batch.draw()
+            if self.track_batch:
+                self.track_batch.draw()
+            if self.gates_batch:
+                self.gates_batch.draw()
+            if self.finish_line_batch:
+                self.finish_line_batch.draw()
+            if self.distances_batch:
+                self.distances_batch.draw()
             car.show()
             speed_label.draw()
             timer_label.draw()
 
-        def update(dt: float):
+        def update(dt: float) -> None:
+            """
+            Update game logic for each frame.
+
+            :return: None
+            """
             if self.finished:
                 return
 
-            speed, timer = car.update(keys, dt)
+            speed, timer = car.update(keys, dt)  # type: ignore[arg-type]
             self.game_timer += dt
 
             speed_label.text = f"Speed: {int(speed) if speed is not None else 0}"
             timer_label.text = f"Time: {timer:.3f}s" if timer is not None else "0.0s"
 
-            # Update sensor lines
             self.update_distance_lines(car)
 
             # Add frame to replay
             replay.add(
                 make_replay.Replay.Frame(
-                    len(replay.log),
-                    self.game_timer,
-                    car.x,
-                    car.y,
-                    car.car_heading,
-                    car.alive,
-                    car.completed,
-                    utilities.get_dict_keys(keys),
+                    frame_number=len(replay.log),
+                    delta_time=self.game_timer,
+                    x=car.x,
+                    y=car.y,
+                    heading=car.car_heading,
+                    alive=car.alive,
+                    completed=car.completed,
+                    pressed_keys=utilities.get_dict_keys(keys),  # type: ignore[arg-type]
                 )
             )
 
@@ -119,9 +170,12 @@ class Game:
         return replay
 
     def update_distance_lines(self, car: car_class.Car) -> None:
-        """Update or create distance lines for visualization."""
-        batch = self.distances_batch
+        """
+        Update or create distance lines for visualization.
 
+        :param car: Car object to compute distances from
+        """
+        batch = self.distances_batch
         self.front_distance_line = shapes.Line(car.x, car.y, car.front_dist.x2, car.front_dist.y2, batch=batch)
         self.left_distance_line = shapes.Line(car.x, car.y, car.left_dist.x2, car.left_dist.y2, batch=batch)
         self.right_distance_line = shapes.Line(car.x, car.y, car.right_dist.x2, car.right_dist.y2, batch=batch)

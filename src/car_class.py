@@ -5,6 +5,7 @@ import pyglet
 from pyglet.window import key
 
 import car_stats
+import graphics_constants
 import utilities
 from src.make_replay import Replay
 
@@ -30,7 +31,7 @@ class Car:
         self.start_heading: float = heading
         self.replay: Replay = replay
 
-        self.car_image = pyglet.image.load("../images/car.png")
+        self.car_image = pyglet.image.load(graphics_constants.car_image_path)
         self.car_image.anchor_x = int(self.car_image.width / 2)
         self.car_image.anchor_y = int(self.car_image.height / 2)
         self.car_sprite = pyglet.sprite.Sprite(self.car_image, x=self.x, y=self.y)
@@ -66,20 +67,21 @@ class Car:
         self.front_right_dist = utilities.Segment(pos.copy(), pos.copy())
         self.distances: np.ndarray = np.zeros(5, dtype=float)
 
-    def physics_process(self, keys: Mapping[int, bool], dt: float) -> None:
+    def physics_process(self, keys: Mapping[int, bool] | None, dt: float) -> None:
         self.acceleration[:] = 0.0
         self.get_input(keys)
         self.apply_friction()
         self.velocity += self.acceleration * dt
         self.calculate_steering(dt)
 
-    def get_input(self, keys: Mapping[int, bool]) -> None:
+    def get_input(self, keys: Mapping[int, bool] | None) -> None:
         """
         Change car status based on keys pressed
         :param keys: Dictionary of used keys
         :return: None
         """
-
+        if keys is None:
+            return None
         turn = 0
         if keys[key.A]:
             turn += 1
@@ -97,9 +99,9 @@ class Car:
     def calculate_steering(self, dt: float) -> None:
         """
         Update the steering based on time passed
+
         :param dt: delta time
         :return: None
-
         """
         direction = utilities.vec_from_angle(self.car_heading)
         rear_wheel = np.array([self.x, self.y]) - car_stats.wheel_base / 2.0 * utilities.normalized(direction)
@@ -142,6 +144,11 @@ class Car:
         self.car_sprite.rotation = -self.car_heading
 
     def apply_friction(self) -> None:
+        """
+        Apply friction to car movement
+
+        :return: None
+        """
         # stop velocity if too small
         speed_norm = utilities.norm(self.velocity)
         if speed_norm < 5:
@@ -153,12 +160,24 @@ class Car:
         self.acceleration += friction_force + drag_force
 
     def show(self) -> None:
+        """
+        Renders car sprite
+
+        :return: None
+        """
         if not self.alive:
             return
         self.car_sprite.update(x=float(self.x), y=float(self.y))
         self.car_sprite.draw()
 
-    def update(self, keys: dict[int, bool], dt: float) -> list[float | None]:
+    def update(self, keys: Mapping[int, bool] | None, dt: float) -> list[float | None]:
+        """
+        Update the car status depending on the pressed keys
+
+        :param keys: Dictionary of pressed keys
+        :param dt: Delta time from previous frame
+        :return: current speed and time elapsed
+        """
         self.current_time += dt
         if self.driven:
             if not self.alive or self.completed:
@@ -200,7 +219,9 @@ class Car:
             return [None, round(frame.dt, 2)]
 
     def car_vertices(self) -> list[Vector2]:
-        """Return the 4 corner points of the car as Vector2 arrays."""
+        """
+        :return: the 4 corner points of the car as Vector2 arrays.
+        """
         front = utilities.vec_from_angle(self.car_heading) * (self.width / 2)
         back = utilities.vec_from_angle(self.car_heading) * (-self.width / 2)
         left = utilities.vec_from_angle(self.car_heading + 90) * (self.height / 2)
@@ -215,7 +236,9 @@ class Car:
         return [front_right, front_left, back_right, back_left]
 
     def get_edges(self) -> list[utilities.Segment]:
-        """Return the 4 edges of the car as Segment objects."""
+        """
+        :return: the 4 edges of the car as Segment objects.
+        """
         v = self.car_vertices()
         right = utilities.Segment(v[0], v[2])
         left = utilities.Segment(v[1], v[3])
@@ -224,7 +247,12 @@ class Car:
         return [right, left, front, back]
 
     def cross_border(self) -> bool:
-        """Check if car intersects any border segment."""
+        """
+        Check if car intersects any border segment.
+
+        :return: True if the car crossed any border
+        """
+
         edges = self.get_edges()
         for edge in edges:
             for border in self.borders:
@@ -234,7 +262,11 @@ class Car:
         return False
 
     def cross_next_gate(self) -> bool:
-        """Check if car intersects the next gate segment."""
+        """
+        Check if car intersects the next gate segment.
+
+        :return: True if the car intersected the next gate
+        """
         if self.next_gate >= len(self.gates):
             return False
         edges = self.get_edges()
@@ -246,7 +278,11 @@ class Car:
         return False
 
     def restart(self) -> None:
-        """Restart car at initial position and heading without calling __init__."""
+        """
+        Restart car at initial position and heading without calling __init__.
+
+        :return: None
+        """
         self.x = self.start_x
         self.y = self.start_y
         self.car_heading = self.start_heading
@@ -261,18 +297,21 @@ class Car:
         self.last_timer = 0.0
         self.i_frame = 0
 
-        # Reset distances
         pos = np.array([self.x, self.y], dtype=float)
         for seg in [self.front_dist, self.left_dist, self.right_dist, self.front_left_dist, self.front_right_dist]:
             seg.p1 = pos.copy()
             seg.p2 = pos.copy()
 
-        # Reset sprite position and rotation
         self.car_sprite.update(x=self.x, y=self.y)
         self.car_sprite.rotation = -self.car_heading
 
     def calculate_distances(self) -> None:
-        """Calculate distances from car to borders in five directions."""
+        """
+        Updates distances from car to borders in five directions.
+
+        :return: None
+
+        """
         directions = [0, 90, -90, 45, -45]
         segments_attr = ["front_dist", "left_dist", "right_dist", "front_left_dist", "front_right_dist"]
 

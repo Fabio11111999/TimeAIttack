@@ -166,6 +166,7 @@ def main() -> None:
         + "ENTER = close border"
         + string_spacing
         + "UP/DOWN = change smoothing resolution",
+        font_name=graphics_constants.drawer_instruction_label_font_name,
         font_size=graphics_constants.drawer_instruction_label_font_size,
         x=graphics_constants.drawer_instruction_label_x,
         y=graphics_constants.drawer_instruction_label_y,
@@ -182,6 +183,7 @@ def main() -> None:
         + "ENTER = close border"
         + string_spacing
         + "UP/DOWN = change smoothing resolution",
+        font_name=graphics_constants.drawer_instruction_label_font_name,
         font_size=graphics_constants.drawer_instruction_label_font_size,
         x=graphics_constants.drawer_instruction_label_x,
         y=graphics_constants.drawer_instruction_label_y,
@@ -192,6 +194,7 @@ def main() -> None:
 
     instruction_label_finished_drawing = pyglet.text.Label(
         "Adjust smoothing resolution\n" "ENTER = save track" + string_spacing + "UP/DOWN = change smoothing resolution",
+        font_name=graphics_constants.drawer_instruction_label_font_name,
         font_size=graphics_constants.drawer_instruction_label_font_size,
         x=graphics_constants.drawer_instruction_label_x,
         y=graphics_constants.drawer_instruction_label_y,
@@ -203,6 +206,7 @@ def main() -> None:
     instruction_label_placing_car = pyglet.text.Label(
         "Place car\n"
         "Move mouse to place car" + string_spacing + "A/D = rotate car " + string_spacing + "ENTER = save track",
+        font_name=graphics_constants.drawer_instruction_label_font_name,
         font_size=graphics_constants.drawer_instruction_label_font_size,
         x=graphics_constants.drawer_instruction_label_x,
         y=graphics_constants.drawer_instruction_label_y,
@@ -213,6 +217,7 @@ def main() -> None:
 
     smoothing_label = pyglet.text.Label(
         f"Smoothing resolution: {smoothing_resolution}",
+        font_name=graphics_constants.drawer_instruction_label_font_name,
         font_size=graphics_constants.drawer_instruction_smoothing_label_font_size,
         x=graphics_constants.drawer_instruction_smoothing_label_x,
         y=graphics_constants.drawer_instruction_smoothing_label_y,
@@ -229,6 +234,7 @@ def main() -> None:
         + "F = increase rows"
         + string_spacing
         + "H = decrease rows",
+        font_name=graphics_constants.drawer_instruction_label_font_name,
         font_size=graphics_constants.drawer_instruction_grid_font_size,
         x=graphics_constants.drawer_instruction_grid_label_x,
         y=graphics_constants.drawer_instruction_grid_label_y,
@@ -241,6 +247,7 @@ def main() -> None:
         + "Right click = replace last point"
         + string_spacing
         + "ENTER = save gates and quit",
+        font_name=graphics_constants.drawer_instruction_label_font_name,
         font_size=graphics_constants.drawer_instruction_label_font_size,
         x=graphics_constants.drawer_instruction_label_x,
         y=graphics_constants.drawer_instruction_label_y,

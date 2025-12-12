@@ -1,20 +1,25 @@
-import viewer
+from typing import Literal
+
 import game
+import graphics_constants
 import make_replay
+import viewer
 
 
-def main():
+def main() -> None:
+    mode: Literal["play", "view"] = "view"
 
-    game1 = game.Game(1920, 1080, "../tracks/drawer/")
-    replay = game1.new_game()
-    replay.print_to_file("refactor.txt")
-    return
-    """
-    viewer1 = viewer.Viewer(1920, 1080, '../tracks/track1/')
-    replay = make_replay.replay()
-    replay.read_from_file('13.82.txt')
-    viewer1.view(replay)
-    """
+    if mode == "play":
+        game1 = game.Game(
+            graphics_constants.resolution_width, graphics_constants.resolution_height, "../tracks/drawer/"
+        )
+        replay = game1.new_game()
+        replay.save_to_file("test_json.json")
+    else:
+        replay = make_replay.Replay()
+        replay.load_from_file("test_json.json")
+        viewer1 = viewer.Viewer(graphics_constants.resolution_width, graphics_constants.resolution_height, replay)
+        viewer1.view()
 
 
 if __name__ == "__main__":

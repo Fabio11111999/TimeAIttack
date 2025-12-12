@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from typing import Dict, List, Mapping, Optional, Tuple
 
 import numpy as np
-import pyglet
 import pyglet.graphics
 from numpy.typing import NDArray
 from pyglet import shapes
