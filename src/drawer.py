@@ -130,7 +130,7 @@ def draw_lines(
             lines_container.append(shapes.Line(x1, y1, x2, y2, color=color, batch=batch))
 
 
-def main() -> None:
+def draw_track() -> None:
     window = pyglet.window.Window(graphics_constants.resolution_width, graphics_constants.resolution_height)  # type: ignore
 
     drawing_step = DrawingState.DRAW_OUTER
@@ -678,7 +678,3 @@ def main() -> None:
             grid_lines.clear()
 
     pyglet.app.run()
-
-
-if __name__ == "__main__":
-    main()

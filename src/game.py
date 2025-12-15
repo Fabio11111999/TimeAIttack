@@ -49,6 +49,7 @@ class Game:
         self.front_right_distance_line: Optional[shapes.Line] = None
 
         self.game_timer: float = 0.0
+        self.started = False
         self.finished: bool = False
 
     def new_game(self) -> make_replay.Replay:
@@ -110,6 +111,7 @@ class Game:
 
         self.game_timer = 0.0
         self.finished = False
+        self.started = False
 
         @game_window.event
         def on_draw() -> None:
@@ -140,6 +142,13 @@ class Game:
             if self.finished:
                 return
 
+            pressed_keys = utilities.get_dict_keys(keys)  # type: ignore[arg-type]
+
+            if self.started is False and not any(pressed_keys.values()):
+                return
+
+            self.started = True
+
             speed, timer = car.update(keys, dt)  # type: ignore[arg-type]
             self.game_timer += dt
 
@@ -158,14 +167,14 @@ class Game:
                     heading=car.car_heading,
                     alive=car.alive,
                     completed=car.completed,
-                    pressed_keys=utilities.get_dict_keys(keys),  # type: ignore[arg-type]
+                    pressed_keys=pressed_keys,
                 )
             )
 
             if not car.alive or car.completed:
                 self.finished = True
 
-        pyglet.clock.schedule_interval(update, 1 / 120)
+        pyglet.clock.schedule_interval(update, 1 / 60)
         pyglet.app.run()
         return replay
 
